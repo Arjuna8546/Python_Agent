@@ -34,12 +34,15 @@ def get_flat_process_list():
                 'pid': info['pid'],
                 'ppid': info['ppid'],
                 'name': info['name'],
-                'memory_percent': round(info['memory_percent'], 2),
-                'cpu_percent': round(info['cpu_percent'], 2)
+                'memory_usage': round(info['memory_percent'], 2),
+                'cpu_usage': round(info['cpu_percent'], 2)
             })
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return process_list
 
-print(get_system_info())
-print(get_flat_process_list())
+sys_info = get_system_info()
+process_info=get_flat_process_list()
+
+response = requests.post("http://127.0.0.1:8000/add/",json={"system_detail":sys_info,"process_detail":process_info})
+

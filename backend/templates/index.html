@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Test</title>
+</head>
+<body>
+  <h1>WebSocket Connection Test</h1>
+
+  <script>
+    const socket = new WebSocket("ws://localhost:8000/ws/agent/room/");
+
+    socket.onopen = function (event) {
+      console.log("✅ WebSocket connected!");
+    };
+
+    socket.onmessage = function (event) {
+        console.log("message reached")
+        const data = JSON.parse(event.data);
+        const system = data.system_detail;
+        const processes = data.process_detail;
+
+        document.body.innerHTML += `<h3>System: ${system.hostname}</h3>`;
+        processes.forEach(proc => {
+            document.body.innerHTML += `<p>PID: ${proc.pid}, Name: ${proc.name}, CPU: ${proc.cpu_usage}%, RAM: ${proc.memory_usage}%</p>`;
+        });
+        };
+
+    socket.onclose = function (event) {
+      console.log("❌ WebSocket closed:", event);
+    };
+
+    socket.onerror = function (error) {
+      console.error("⚠️ WebSocket error:", error);
+    };
+  </script>
+</body>
+</html>
