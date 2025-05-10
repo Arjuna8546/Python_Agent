@@ -6,77 +6,124 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f0f2f5;
+      background: #1e1e1e;
+      color: #e0e0e0;
       padding: 20px;
     }
+
     .system-card {
-      background: #fff;
+      background: #2a2a2a;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       margin-bottom: 20px;
       padding: 20px;
       transition: all 0.3s ease-in-out;
     }
+
     .system-header {
       font-size: 1.2em;
       margin-bottom: 10px;
       font-weight: bold;
-      color: #333;
+      color: #ffffff;
     }
+
     .btn {
-      background: #3498db;
-      color: white;
+      background: #555;
+      color: #fff;
       border: none;
       padding: 8px 12px;
       margin-right: 10px;
       border-radius: 5px;
       cursor: pointer;
     }
+
     .btn:hover {
-      background: #2980b9;
+      background: #777;
     }
+
     .detail-section {
       margin-top: 10px;
       padding-left: 15px;
     }
-    .process-item {
+
+    table.process-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .process-table th, .process-table td {
+      padding: 8px;
+      border-bottom: 1px solid #444;
+      color: #ddd;
+    }
+
+    .process-table th {
+      background-color: #333;
+      text-align: left;
+    }
+
+    .process-row {
       cursor: pointer;
-      margin-bottom: 5px;
-      padding: 5px;
-      background: #f7f7f7;
-      border-radius: 5px;
     }
-    .process-item:hover {
-      background: #e1e9f0;
+
+    .process-row:hover {
+      background-color: #3a3a3a;
     }
+
     .subprocesses {
-      margin-left: 20px;
-      margin-top: 5px;
-      font-size: 0.95em;
-      color: #555;
+      display: none;
+      padding-left: 30px;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+
+    .arrow {
+      display: inline-block;
+      width: 20px;
+      text-align: center;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>🖥️ WebSocket System Monitor</h1>
+  <h1>WebSocket System Monitor</h1>
   <div id="system-container"></div>
 
   <script>
     const socket = new WebSocket("ws://localhost:8000/ws/agent/room/");
 
-    socket.onopen = function () {
-      console.log("WebSocket connected!");
+    socket.onopen = () => console.log("WebSocket connected!");
+    socket.onclose = event => console.log("WebSocket closed:", event);
+    socket.onerror = error => console.error("WebSocket error:", error);
+
+    socket.onmessage = event => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case "initial_data":
+          data.systems.forEach(system => {
+            renderSystem(system.system_detail);
+          });
+          break;
+        case "process_update":
+          renderSystem(data.system_detail);
+          break;
+        default:
+          console.warn("Unknown message type:", data.type);
+      }
     };
 
-    
+    function renderSystem(system) {
+      let existingSystemCard = document.querySelector(`#system-${system.hostname}`);
 
-    socket.onmessage = function (event) {
-      const data = JSON.parse(event.data);
-      const system = data.system_detail;
-      const processes = data.process_detail;
+      if (existingSystemCard) {
+        updateSystemDetails(existingSystemCard, system);
+        return;
+      }
 
       const systemCard = document.createElement('div');
       systemCard.className = 'system-card';
+      systemCard.id = `system-${system.hostname}`;
 
       const systemHeader = document.createElement('div');
       systemHeader.className = 'system-header';
@@ -97,51 +144,18 @@
         <p>OS: ${system.os_name}</p>
         <p>Processor: ${system.processor}</p>
         <p>Total Core: ${system.total_cores}</p>
-        <p>total_threads: ${system.total_threads}</p>
-        <p>Total Core: ${system.total_cores}</p>
-        <p>ram_total: ${system.ram_total}</p>
-        <p>ram_used: ${system.ram_used}</p>
-        <p>ram_available: ${system.ram_available}</p>
-        <p>storage_total: ${system.storage_total}</p>
-        <p>storage_used: ${system.storage_used}</p>
-        <p>storage_free: ${system.storage_free}</p>
+        <p>Total Threads: ${system.total_threads}</p>
+        <p>RAM Total: ${system.ram_total}</p>
+        <p>RAM Used: ${system.ram_used}</p>
+        <p>RAM Available: ${system.ram_available}</p>
+        <p>Storage Total: ${system.storage_total}</p>
+        <p>Storage Used: ${system.storage_used}</p>
+        <p>Storage Free: ${system.storage_free}</p>
       `;
 
       const processList = document.createElement('div');
       processList.className = 'detail-section';
       processList.style.display = 'none';
-
-      processes.forEach(proc => {
-        const procItem = document.createElement('div');
-        procItem.className = 'process-item';
-        procItem.innerText = `PID: ${proc.pid}, Name: ${proc.name}, CPU: ${proc.cpu_usage}%, RAM: ${proc.memory_usage}%`;
-
-        const subprocessContainer = document.createElement('div');
-        subprocessContainer.className = 'subprocesses';
-
-        procItem.onclick = () => {
-          if (subprocessContainer.innerHTML.trim() !== "") {
-            subprocessContainer.innerHTML = "";
-            return;
-          }
-
-          fetch(`/subprocess/${proc.pid}/`)
-            .then(res => res.json())
-            .then(data => {
-              subprocessContainer.innerHTML = "<strong>Subprocesses:</strong>";
-              data.forEach(sp => {
-                subprocessContainer.innerHTML += `<div>- PID: ${sp.pid}, Name: ${sp.name}</div>`;
-              });
-            })
-            .catch(err => {
-              subprocessContainer.innerHTML = "<div style='color:red;'>Failed to load subprocesses</div>";
-              console.error(err);
-            });
-        };
-
-        processList.appendChild(procItem);
-        processList.appendChild(subprocessContainer);
-      });
 
       btnSys.onclick = () => {
         sysDetails.style.display = sysDetails.style.display === "none" ? "block" : "none";
@@ -149,8 +163,24 @@
       };
 
       btnProc.onclick = () => {
-        processList.style.display = processList.style.display === "none" ? "block" : "none";
+        const isVisible = processList.style.display === "block";
+        processList.style.display = isVisible ? "none" : "block";
         btnProc.innerText = processList.style.display === "block" ? "Hide Processes" : "Show Processes";
+
+        if (!isVisible && processList.innerHTML.trim() === "") {
+          processList.innerHTML = "<p>Loading processes...</p>";
+          $.ajax({
+            url: `/processes/${system.hostname}/`,
+            method: 'GET',
+            success: function(processes) {
+              renderProcesses(processList, processes);
+            },
+            error: function(err) {
+              processList.innerHTML = "<div style='color:red;'>Failed to load processes</div>";
+              console.error(err);
+            }
+          });
+        }
       };
 
       systemCard.appendChild(systemHeader);
@@ -160,15 +190,102 @@
       systemCard.appendChild(processList);
 
       document.getElementById("system-container").appendChild(systemCard);
-    };
+    }
 
-    socket.onclose = function (event) {
-      console.log("❌ WebSocket closed:", event);
-    };
+    function updateSystemDetails(systemCard, system) {
+      const sysDetails = systemCard.querySelector('.detail-section');
+      sysDetails.innerHTML = `
+        <p>OS: ${system.os_name}</p>
+        <p>Processor: ${system.processor}</p>
+        <p>Total Core: ${system.total_cores}</p>
+        <p>Total Threads: ${system.total_threads}</p>
+        <p>RAM Total: ${system.ram_total}</p>
+        <p>RAM Used: ${system.ram_used}</p>
+        <p>RAM Available: ${system.ram_available}</p>
+        <p>Storage Total: ${system.storage_total}</p>
+        <p>Storage Used: ${system.storage_used}</p>
+        <p>Storage Free: ${system.storage_free}</p>
+      `;
+    }
 
-    socket.onerror = function (error) {
-      console.error("⚠️ WebSocket error:", error);
-    };
+    function renderProcesses(processList, processes) {
+      processList.innerHTML = '';
+
+      const table = document.createElement('table');
+      table.className = 'process-table';
+
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th></th>
+          <th>PID</th>
+          <th>Name</th>
+          <th>CPU %</th>
+          <th>RAM %</th>
+        </tr>`;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      processes.forEach(proc => {
+        const tr = document.createElement('tr');
+        tr.className = 'process-row';
+
+        const arrowTd = document.createElement('td');
+        const arrow = document.createElement('span');
+        arrow.className = 'arrow';
+        arrow.innerHTML = '>';
+        arrowTd.appendChild(arrow);
+        tr.appendChild(arrowTd);
+
+        tr.innerHTML += `
+          <td>${proc.pid}</td>
+          <td>${proc.name}</td>
+          <td>${proc.cpu_usage}%</td>
+          <td>${proc.memory_usage}%</td>
+        `;
+
+        const subprocessContainer = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.className = 'subprocesses';
+        subprocessContainer.appendChild(td);
+
+        tr.onclick = () => {
+          const isVisible = td.style.display === 'block';
+          td.style.display = isVisible ? 'none' : 'block';
+          arrow.innerHTML = isVisible ? '▶' : '▼';
+
+          if (!isVisible && td.innerHTML.trim() === "") {
+            td.innerHTML = "Loading subprocesses...";
+            $.ajax({
+              url: `/subprocess/${proc.pid}/`,
+              method: 'GET',
+              success: function(data) {
+                if (data.length === 0) {
+                  td.innerHTML = "<em>No subprocesses</em>";
+                } else {
+                  td.innerHTML = "<strong>Subprocesses:</strong><br>";
+                  data.forEach(sp => {
+                    td.innerHTML += `- PID: ${sp.pid}, Name: ${sp.name}<br>`;
+                  });
+                }
+              },
+              error: function(err) {
+                td.innerHTML = "<div style='color:red;'>Failed to load subprocesses</div>";
+                console.error(err);
+              }
+            });
+          }
+        };
+
+        tbody.appendChild(tr);
+        tbody.appendChild(subprocessContainer);
+      });
+
+      table.appendChild(tbody);
+      processList.appendChild(table);
+    }
   </script>
 </body>
 </html>

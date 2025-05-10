@@ -5,4 +5,5 @@ urlpatterns = [
     path('add/',AddAgentDetails.as_view()),
     path('home/',Home.as_view()),
     path('subprocess/<int:pid>/', SubprocessView.as_view(), name='subprocess'),
+    path('processes/<str:hostname>/', ProcessView.as_view(), name='process'),
 ]

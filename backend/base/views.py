@@ -35,7 +35,7 @@ class AddAgentDetails(View):
             )
 
             process_list = resdata.get('process_detail', [])  
-            updated_processes = self.refresh_process_data(process_list, agent) 
+            self.refresh_process_data(process_list, agent) 
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -43,8 +43,9 @@ class AddAgentDetails(View):
                 {
                     'type': 'send_process_update',
                     'data': {
+                        'type': 'process_update',
                         'system_detail': model_to_dict(agent),
-                        'process_detail': [model_to_dict(p) for p in updated_processes],
+                        # 'process_detail': [model_to_dict(p) for p in updated_processes],
                     }
                 }
             )
@@ -126,4 +127,12 @@ class SubprocessView(View):
                 'name': proc.name,
             } for proc in subprocesses
         ]
+        return JsonResponse(data, safe=False)
+    
+class ProcessView(View):
+    def get(self,request,hostname):
+        system = SystemDetail.objects.get(hostname=hostname)
+        processes = ProcessDetail.objects.filter(system=system)
+        
+        data = [model_to_dict(p) for p in processes]
         return JsonResponse(data, safe=False)
