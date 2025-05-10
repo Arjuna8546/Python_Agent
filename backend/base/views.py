@@ -130,8 +130,8 @@ class SubprocessView(View):
         return JsonResponse(data, safe=False)
     
 class ProcessView(View):
-    def get(self,request,hostname):
-        system = SystemDetail.objects.get(hostname=hostname)
+    def get(self,request,sid):
+        system = SystemDetail.objects.get(id=sid)
         processes = ProcessDetail.objects.filter(system=system)
         
         data = [model_to_dict(p) for p in processes]

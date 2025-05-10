@@ -5,84 +5,214 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #1e1e1e;
-      color: #e0e0e0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1F2937;
+      color: #F9FAFB;
       padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #D8B4FE;
+      text-align: center;
+      margin-bottom: 30px;
     }
 
     .system-card {
-      background: #2a2a2a;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      background: #374151;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
       margin-bottom: 20px;
       padding: 20px;
-      transition: all 0.3s ease-in-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .system-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
     }
 
     .system-header {
-      font-size: 1.2em;
-      margin-bottom: 10px;
+      font-size: 1.4em;
+      margin-bottom: 15px;
       font-weight: bold;
-      color: #ffffff;
+      color: #D8B4FE;
     }
 
     .btn {
-      background: #555;
-      color: #fff;
+      background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+      color: #F9FAFB;
       border: none;
-      padding: 8px 12px;
+      padding: 10px 16px;
       margin-right: 10px;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s ease;
     }
 
     .btn:hover {
-      background: #777;
+      background: linear-gradient(90deg, #A78BFA, #8B5CF6);
     }
 
     .detail-section {
-      margin-top: 10px;
-      padding-left: 15px;
+      margin-top: 15px;
+      padding: 10px;
+      background: #4B5563;
+      border-radius: 8px;
     }
 
-    table.process-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+    .detail-section p {
+      margin: 5px 0;
+      font-size: 0.95em;
     }
 
-    .process-table th, .process-table td {
-      padding: 8px;
-      border-bottom: 1px solid #444;
-      color: #ddd;
+    .process-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      border: 1px solid #6B7280;
+      border-radius: 8px;
     }
 
-    .process-table th {
-      background-color: #333;
+    .process-header, .process-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid #6B7280;
+    }
+
+    .process-header {
+      background: #6B7280;
+      font-weight: 600;
+      color: #F9FAFB;
+    }
+
+    .process-item {
+      background: #4B5563;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .process-item:nth-child(even) {
+      background: #374151;
+    }
+
+    .process-item:hover {
+      background: #8B5CF6;
+    }
+
+    .process-item > div, .process-header > div {
+      flex: 1;
       text-align: left;
     }
 
-    .process-row {
-      cursor: pointer;
+    .process-item > div:nth-child(1), .process-header > div:nth-child(1) {
+      flex: 0 0 5%;
     }
 
-    .process-row:hover {
-      background-color: #3a3a3a;
+    .process-item > div:nth-child(2), .process-header > div:nth-child(2) {
+      flex: 0 0 20%;
     }
 
-    .subprocesses {
+    .process-item > div:nth-child(3), .process-header > div:nth-child(3) {
+      flex: 0 0 35%;
+    }
+
+    .process-item > div:nth-child(4), .process-header > div:nth-child(4) {
+      flex: 0 0 20%;
+    }
+
+    .process-item > div:nth-child(5), .process-header > div:nth-child(5) {
+      flex: 0 0 20%;
+    }
+
+    .subprocess-content {
       display: none;
-      padding-left: 30px;
+      padding: 15px 30px;
+      background: #6B7280;
+      border-radius: 0 0 8px 8px;
       font-size: 0.9em;
-      color: #aaa;
+      color: #D8B4FE;
+    }
+
+    .subprocess-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+
+    .subprocess-item {
+      padding: 8px 12px;
+      margin: 5px 0;
+      background: #4B5563;
+      border-left: 3px solid #D8B4FE;
+      border-radius: 4px;
+      color: #F9FAFB;
+      display: flex;
+      align-items: center;
+    }
+
+    .subprocess-item::before {
+      content: '•';
+      color: #D8B4FE;
+      margin-right: 10px;
+      font-size: 1.2em;
+    }
+
+    .subprocess-label {
+      color: #D8B4FE;
+      font-weight: 500;
+      margin-right: 5px;
     }
 
     .arrow {
       display: inline-block;
       width: 20px;
       text-align: center;
-      color: #ccc;
+      color: #D8B4FE;
+    }
+
+    .filter-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #374151;
+      border-radius: 8px;
+    }
+
+    .filter-container input {
+      padding: 8px 12px;
+      background: #4B5563;
+      border: 1px solid #6B7280;
+      border-radius: 6px;
+      color: #F9FAFB;
+      font-size: 0.9em;
+      width: 150px;
+    }
+
+    .filter-container input::placeholder {
+      color: #D8B4FE;
+      opacity: 0.7;
+    }
+
+    .filter-container input:focus {
+      outline: none;
+      border-color: #8B5CF6;
+      box-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
+    }
+
+    .filter-container label {
+      color: #D8B4FE;
+      font-size: 0.9em;
+      margin-right: 5px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
   </style>
 </head>
@@ -170,13 +300,13 @@
         if (!isVisible && processList.innerHTML.trim() === "") {
           processList.innerHTML = "<p>Loading processes...</p>";
           $.ajax({
-            url: `/processes/${system.hostname}/`,
+            url: `/processes/${system.id}/`,
             method: 'GET',
             success: function(processes) {
               renderProcesses(processList, processes);
             },
             error: function(err) {
-              processList.innerHTML = "<div style='color:red;'>Failed to load processes</div>";
+              processList.innerHTML = "<div style='color:#F9FAFB;'>Failed to load processes</div>";
               console.error(err);
             }
           });
@@ -211,80 +341,125 @@
     function renderProcesses(processList, processes) {
       processList.innerHTML = '';
 
-      const table = document.createElement('table');
-      table.className = 'process-table';
+      let originalProcesses = [...processes];
 
-      const thead = document.createElement('thead');
-      thead.innerHTML = `
-        <tr>
-          <th></th>
-          <th>PID</th>
-          <th>Name</th>
-          <th>CPU %</th>
-          <th>RAM %</th>
-        </tr>`;
-      table.appendChild(thead);
+      const filterContainer = document.createElement('div');
+      filterContainer.className = 'filter-container';
+      filterContainer.innerHTML = `
+        <div class="filter-group">
+          <label for="search-name">Search Name:</label>
+          <input type="text" id="search-name" placeholder="Enter process name">
+        </div>
+        <div class="filter-group">
+          <label for="cpu-min">CPU min:</label>
+          <input type="number" id="cpu-min" placeholder="Min" min="0" step="0.1">
+        </div>
+        <div class="filter-group">
+          <label for="mem-min">Memory min:</label>
+          <input type="number" id="mem-min" placeholder="Min" min="0" step="0.1">
+        </div>
+      `;
 
-      const tbody = document.createElement('tbody');
+      const ul = document.createElement('ul');
+      ul.className = 'process-list';
 
-      processes.forEach(proc => {
-        const tr = document.createElement('tr');
-        tr.className = 'process-row';
+      const header = document.createElement('li');
+      header.className = 'process-header';
+      header.innerHTML = `
+        <div><span class="arrow"></span></div>
+        <div>PID</div>
+        <div>Name</div>
+        <div>CPU %</div>
+        <div>RAM %</div>
+      `;
+      ul.appendChild(header);
 
-        const arrowTd = document.createElement('td');
-        const arrow = document.createElement('span');
-        arrow.className = 'arrow';
-        arrow.innerHTML = '>';
-        arrowTd.appendChild(arrow);
-        tr.appendChild(arrowTd);
+      function filterProcesses() {
+        const searchName = document.getElementById('search-name').value.toLowerCase();
+        const cpuMin = parseFloat(document.getElementById('cpu-min').value) || 0;
+        const memMin = parseFloat(document.getElementById('mem-min').value) || 0;
 
-        tr.innerHTML += `
-          <td>${proc.pid}</td>
-          <td>${proc.name}</td>
-          <td>${proc.cpu_usage}%</td>
-          <td>${proc.memory_usage}%</td>
-        `;
+        while (ul.children.length > 1) {
+          ul.removeChild(ul.lastChild);
+        }
 
-        const subprocessContainer = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 5;
-        td.className = 'subprocesses';
-        subprocessContainer.appendChild(td);
+        const filteredProcesses = originalProcesses.filter(proc => {
+          const matchesName = proc.name.toLowerCase().includes(searchName);
+          const cpuUsage = parseFloat(proc.cpu_usage);
+          const memoryUsage = parseFloat(proc.memory_usage);
+          const matchesCpu = cpuUsage >= cpuMin;
+          const matchesMemory = memoryUsage >= memMin;
+          return matchesName && matchesCpu && matchesMemory;
+        });
 
-        tr.onclick = () => {
-          const isVisible = td.style.display === 'block';
-          td.style.display = isVisible ? 'none' : 'block';
-          arrow.innerHTML = isVisible ? '▶' : '▼';
+        filteredProcesses.forEach(proc => {
+          const li = document.createElement('li');
+          li.className = 'process-item';
 
-          if (!isVisible && td.innerHTML.trim() === "") {
-            td.innerHTML = "Loading subprocesses...";
-            $.ajax({
-              url: `/subprocess/${proc.pid}/`,
-              method: 'GET',
-              success: function(data) {
-                if (data.length === 0) {
-                  td.innerHTML = "<em>No subprocesses</em>";
-                } else {
-                  td.innerHTML = "<strong>Subprocesses:</strong><br>";
-                  data.forEach(sp => {
-                    td.innerHTML += `- PID: ${sp.pid}, Name: ${sp.name}<br>`;
-                  });
+          const arrowSpan = document.createElement('span');
+          arrowSpan.className = 'arrow';
+          arrowSpan.innerHTML = '>';
+
+          li.innerHTML = `
+            <div>${arrowSpan.outerHTML}</div>
+            <div>${proc.pid}</div>
+            <div>${proc.name}</div>
+            <div>${proc.cpu_usage}%</div>
+            <div>${proc.memory_usage}%</div>
+          `;
+
+          const subprocessDiv = document.createElement('div');
+          subprocessDiv.className = 'subprocess-content';
+
+          li.onclick = () => {
+            const isVisible = subprocessDiv.style.display === 'block';
+            subprocessDiv.style.display = isVisible ? 'none' : 'block';
+            arrowSpan.innerHTML = isVisible ? '>' : '-';
+
+            if (!isVisible && subprocessDiv.innerHTML.trim() === "") {
+              subprocessDiv.innerHTML = "Loading subprocesses...";
+              $.ajax({
+                url: `/subprocess/${proc.pid}/`,
+                method: 'GET',
+                success: function(data) {
+                  if (data.length === 0) {
+                    subprocessDiv.innerHTML = "<em>No subprocesses</em>";
+                  } else {
+                    subprocessDiv.innerHTML = `
+                      <strong style="color: #D8B4FE;">Subprocesses:</strong>
+                      <ul class="subprocess-list">
+                        ${data.map(sp => `
+                          <li class="subprocess-item">
+                            <span class="subprocess-label">PID:</span> ${sp.pid},
+                            <span class="subprocess-label">Name:</span> ${sp.name}
+                          </li>
+                        `).join('')}
+                      </ul>
+                    `;
+                  }
+                },
+                error: function(err) {
+                  subprocessDiv.innerHTML = "<div style='color:#F9FAFB;'>Failed to load subprocesses</div>";
+                  console.error(err);
                 }
-              },
-              error: function(err) {
-                td.innerHTML = "<div style='color:red;'>Failed to load subprocesses</div>";
-                console.error(err);
-              }
-            });
-          }
-        };
+              });
+            }
+          };
 
-        tbody.appendChild(tr);
-        tbody.appendChild(subprocessContainer);
+          ul.appendChild(li);
+          ul.appendChild(subprocessDiv);
+        });
+      }
+
+      filterContainer.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', filterProcesses);
       });
 
-      table.appendChild(tbody);
-      processList.appendChild(table);
+      processList.appendChild(filterContainer);
+      processList.appendChild(ul);
+
+
+      filterProcesses();
     }
   </script>
 </body>
