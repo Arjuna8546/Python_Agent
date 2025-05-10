@@ -116,3 +116,14 @@ class AddAgentDetails(View):
 class Home(View):
     def get(self,request):
         return render(request,"index.html")
+    
+class SubprocessView(View):
+    def get(self, request, pid):
+        subprocesses = ProcessDetail.objects.filter(ppid=pid)
+        data = [
+            {
+                'pid': proc.pid,
+                'name': proc.name,
+            } for proc in subprocesses
+        ]
+        return JsonResponse(data, safe=False)

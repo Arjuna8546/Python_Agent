@@ -21,3 +21,9 @@ class AgentConsumer(AsyncWebsocketConsumer):
 
     async def send_process_update(self, event):
         await self.send(text_data=json.dumps(event['data']))
+        
+        
+    
+
+
+    

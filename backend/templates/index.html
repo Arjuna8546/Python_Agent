@@ -1,29 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WebSocket Test</title>
+  <title>WebSocket System Monitor</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    .system-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      padding: 20px;
+      transition: all 0.3s ease-in-out;
+    }
+    .system-header {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+    .btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      margin-right: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #2980b9;
+    }
+    .detail-section {
+      margin-top: 10px;
+      padding-left: 15px;
+    }
+    .process-item {
+      cursor: pointer;
+      margin-bottom: 5px;
+      padding: 5px;
+      background: #f7f7f7;
+      border-radius: 5px;
+    }
+    .process-item:hover {
+      background: #e1e9f0;
+    }
+    .subprocesses {
+      margin-left: 20px;
+      margin-top: 5px;
+      font-size: 0.95em;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
-  <h1>WebSocket Connection Test</h1>
+  <h1>🖥️ WebSocket System Monitor</h1>
+  <div id="system-container"></div>
 
   <script>
     const socket = new WebSocket("ws://localhost:8000/ws/agent/room/");
 
-    socket.onopen = function (event) {
-      console.log("✅ WebSocket connected!");
+    socket.onopen = function () {
+      console.log("WebSocket connected!");
     };
 
-    socket.onmessage = function (event) {
-        console.log("message reached")
-        const data = JSON.parse(event.data);
-        const system = data.system_detail;
-        const processes = data.process_detail;
+    
 
-        document.body.innerHTML += `<h3>System: ${system.hostname}</h3>`;
-        processes.forEach(proc => {
-            document.body.innerHTML += `<p>PID: ${proc.pid}, Name: ${proc.name}, CPU: ${proc.cpu_usage}%, RAM: ${proc.memory_usage}%</p>`;
-        });
+    socket.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      const system = data.system_detail;
+      const processes = data.process_detail;
+
+      const systemCard = document.createElement('div');
+      systemCard.className = 'system-card';
+
+      const systemHeader = document.createElement('div');
+      systemHeader.className = 'system-header';
+      systemHeader.innerText = `System: ${system.hostname}`;
+
+      const btnSys = document.createElement('button');
+      btnSys.className = 'btn';
+      btnSys.innerText = 'Show System Details';
+
+      const btnProc = document.createElement('button');
+      btnProc.className = 'btn';
+      btnProc.innerText = 'Show Processes';
+
+      const sysDetails = document.createElement('div');
+      sysDetails.className = 'detail-section';
+      sysDetails.style.display = 'none';
+      sysDetails.innerHTML = `
+        <p>OS: ${system.os_name}</p>
+        <p>Processor: ${system.processor}</p>
+        <p>Total Core: ${system.total_cores}</p>
+        <p>total_threads: ${system.total_threads}</p>
+        <p>Total Core: ${system.total_cores}</p>
+        <p>ram_total: ${system.ram_total}</p>
+        <p>ram_used: ${system.ram_used}</p>
+        <p>ram_available: ${system.ram_available}</p>
+        <p>storage_total: ${system.storage_total}</p>
+        <p>storage_used: ${system.storage_used}</p>
+        <p>storage_free: ${system.storage_free}</p>
+      `;
+
+      const processList = document.createElement('div');
+      processList.className = 'detail-section';
+      processList.style.display = 'none';
+
+      processes.forEach(proc => {
+        const procItem = document.createElement('div');
+        procItem.className = 'process-item';
+        procItem.innerText = `PID: ${proc.pid}, Name: ${proc.name}, CPU: ${proc.cpu_usage}%, RAM: ${proc.memory_usage}%`;
+
+        const subprocessContainer = document.createElement('div');
+        subprocessContainer.className = 'subprocesses';
+
+        procItem.onclick = () => {
+          if (subprocessContainer.innerHTML.trim() !== "") {
+            subprocessContainer.innerHTML = "";
+            return;
+          }
+
+          fetch(`/subprocess/${proc.pid}/`)
+            .then(res => res.json())
+            .then(data => {
+              subprocessContainer.innerHTML = "<strong>Subprocesses:</strong>";
+              data.forEach(sp => {
+                subprocessContainer.innerHTML += `<div>- PID: ${sp.pid}, Name: ${sp.name}</div>`;
+              });
+            })
+            .catch(err => {
+              subprocessContainer.innerHTML = "<div style='color:red;'>Failed to load subprocesses</div>";
+              console.error(err);
+            });
         };
+
+        processList.appendChild(procItem);
+        processList.appendChild(subprocessContainer);
+      });
+
+      btnSys.onclick = () => {
+        sysDetails.style.display = sysDetails.style.display === "none" ? "block" : "none";
+        btnSys.innerText = sysDetails.style.display === "block" ? "Hide System Details" : "Show System Details";
+      };
+
+      btnProc.onclick = () => {
+        processList.style.display = processList.style.display === "none" ? "block" : "none";
+        btnProc.innerText = processList.style.display === "block" ? "Hide Processes" : "Show Processes";
+      };
+
+      systemCard.appendChild(systemHeader);
+      systemCard.appendChild(btnSys);
+      systemCard.appendChild(btnProc);
+      systemCard.appendChild(sysDetails);
+      systemCard.appendChild(processList);
+
+      document.getElementById("system-container").appendChild(systemCard);
+    };
 
     socket.onclose = function (event) {
       console.log("❌ WebSocket closed:", event);
